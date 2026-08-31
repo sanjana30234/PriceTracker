@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PriceTracker — Compare prices across Amazon, Flipkart, Croma, and more. Find the best deals on electronics, fashion, and accessories." />
+  <title>PriceTracker — Compare Prices. Shop Smarter.</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo" id="logo-link">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Price<span class="logo-accent">Tracker</span></span>
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#hero" class="nav-link active">Home</a></li>
+        <li><a href="#products" class="nav-link">Products</a></li>
+        <li><a href="#compare-section" class="nav-link">Compare Cart</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- BUG #12: Search input missing aria-label attribute -->
+        <div class="nav-search">
+          <input type="text" id="nav-search-input" placeholder="Search products..." />
+          <button class="nav-search-btn" id="nav-search-btn" onclick="handleNavSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </button>
+        </div>
+
+        <button class="cart-btn" id="cart-btn" onclick="scrollToCompare()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </button>
+
+        <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Real-time price comparison
+        </div>
+        <h1 class="hero-heading">Compare prices<br /><span class="hero-accent">before you buy.</span></h1>
+        <p class="hero-sub">Track products across multiple stores and find the best deal in seconds. Stop overpaying — start saving.</p>
+
+        <div class="hero-search">
+          <div class="hero-search-wrapper">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="hero-search-input" placeholder="Search for AirPods, iPhone, Headphones..." />
+            <button class="hero-search-btn" id="hero-search-btn" onclick="handleHeroSearch()">Search</button>
+          </div>
+        </div>
+
+        <div class="hero-cta-group">
+          <a href="#products" class="btn btn-primary" id="start-comparing-btn">Start Comparing</a>
+          <a href="#compare-section" class="btn btn-outline" id="view-cart-btn">View Cart →</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Stores</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">100+</span>
+            <span class="stat-label">Products</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">₹1000</span>
+            <span class="stat-label">Avg Savings</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <img src="assets/hero.png" alt="Product comparison illustration" class="hero-image" id="hero-image" />
+        <div class="hero-float-card card-1">
+          <span class="float-icon">🏷️</span>
+          <div>
+            <div class="float-title">Best Price Found</div>
+            <div class="float-value">₹28,499</div>
+          </div>
+        </div>
+        <div class="hero-float-card card-2">
+          <span class="float-icon">✅</span>
+          <div>
+            <div class="float-title">You Save</div>
+            <div class="float-value">₹1,491</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS SECTION ===== -->
+  <section class="products-section" id="products">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Discover Deals</div>
+        <h2 class="section-title">Popular Products</h2>
+        <p class="section-sub">Browse top-rated products and compare prices across all major stores.</p>
+      </div>
+
+      <!-- Filter and Sort Controls -->
+      <div class="controls-bar" id="controls-bar">
+        <div class="filter-group" id="filter-group">
+          <!-- BUG #13: This is a <div> instead of <button>, breaking keyboard accessibility -->
+          <div class="filter-btn active" id="filter-all" onclick="filterProducts('all')">All</div>
+          <button class="filter-btn" id="filter-electronics" onclick="filterProducts('electronics')">Electronics</button>
+          <button class="filter-btn" id="filter-fashion" onclick="filterProducts('fashion')">Fashion</button>
+          <button class="filter-btn" id="filter-accessories" onclick="filterProducts('accessories')">Accessories</button>
+        </div>
+
+        <div class="sort-group">
+          <label for="sort-select" class="sort-label">Sort by:</label>
+          <select id="sort-select" class="sort-select" onchange="sortProducts(this.value)">
+            <option value="default">Default</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Rating</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="products-grid" id="products-grid">
+        <!-- Cards injected by JavaScript -->
+      </div>
+
+      <div class="no-results" id="no-results" style="display:none;">
+        <div class="no-results-icon">🔍</div>
+        <h3>No products found.</h3>
+        <p>Try another search term or clear the filter.</p>
+        <button class="btn btn-outline" onclick="clearSearch()" id="clear-search-btn">Clear Search</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COMPARE CART SECTION ===== -->
+  <section class="compare-section" id="compare-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Your Selection</div>
+        <h2 class="section-title">Compare Cart <span class="cart-badge" id="cart-badge">0 items</span></h2>
+        <p class="section-sub">Add products to your cart and compare their prices side by side.</p>
+      </div>
+
+      <!-- Empty cart state -->
+      <div class="empty-cart" id="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <h3>Your compare cart is empty</h3>
+        <p>Browse products and click <strong>Add to Compare</strong> to get started.</p>
+        <a href="#products" class="btn btn-primary" id="browse-products-btn">Browse Products</a>
+      </div>
+
+      <!-- Cart items grid -->
+      <div class="cart-items-grid" id="cart-items-grid" style="display:none;">
+        <!-- Injected by JS -->
+      </div>
+
+      <!-- Cart actions -->
+      <div class="cart-actions" id="cart-actions" style="display:none;">
+        <!-- BUG #8: Clear Cart button has no event listener wired in JS -->
+        <button class="btn btn-danger" id="clear-cart-btn">Clear Cart</button>
+        <button class="btn btn-primary" id="compare-btn" onclick="renderComparisonTable()">Compare Prices</button>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="comparison-area" id="comparison-area" style="display:none;">
+        <h3 class="comparison-title">Price Comparison</h3>
+        <!-- BUG #11: Missing overflow-x:auto wrapper — table overflows on small screens -->
+        <div id="comparison-table-wrapper">
+          <table class="comparison-table" id="comparison-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Store</th>
+                <th>Price</th>
+                <th>Original Price</th>
+                <th>Discount</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-tbody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="savings-banner" id="savings-banner">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT SECTION ===== -->
+  <!-- BUG: Using <section> with role="article" — wrong semantic element/role combination -->
+  <section class="about-section" id="about" role="article">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-content">
+          <div class="section-label">About PriceTracker</div>
+          <h2 class="section-title">Built for smart shoppers.</h2>
+          <p class="about-text">PriceTracker helps you make informed purchasing decisions by aggregating prices from major Indian e-commerce platforms. No more switching tabs — compare everything in one place.</p>
+          <ul class="about-list">
+            <li>
+              <span class="about-list-icon">📊</span>
+              <div>
+                <strong>Multi-store comparison</strong>
+                <p>Compare prices from Amazon, Flipkart, Croma, Reliance Digital and more.</p>
+              </div>
+            </li>
+            <li>
+              <span class="about-list-icon">💰</span>
+              <div>
+                <strong>Instant savings</strong>
+                <p>We highlight the best deal and show how much you save instantly.</p>
+              </div>
+            </li>
+            <li>
+              <span class="about-list-icon">🔍</span>
+              <div>
+                <strong>Smart search &amp; filters</strong>
+                <p>Find what you need with category filters and sorting options.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="about-cards">
+          <div class="about-stat-card">
+            <div class="about-stat-number">₹2,500+</div>
+            <div class="about-stat-label">Average savings per user</div>
+          </div>
+          <div class="about-stat-card accent">
+            <div class="about-stat-number">5 Stores</div>
+            <div class="about-stat-label">Tracked daily</div>
+          </div>
+          <div class="about-stat-card">
+            <div class="about-stat-number">100%</div>
+            <div class="about-stat-label">Free to use</div>
+          </div>
+          <div class="about-stat-card accent">
+            <div class="about-stat-number">8 Categories</div>
+            <div class="about-stat-label">Of products covered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Price<span class="logo-accent">Tracker</span></span>
+          </div>
+          <p class="footer-tagline">Compare prices. Shop smarter.</p>
+          <p class="footer-desc">Your one-stop destination for price comparison across India's top e-commerce platforms.</p>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#compare-section">Compare Cart</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Stores</h4>
+          <ul class="footer-links">
+            <li><a href="#">Amazon</a></li>
+            <li><a href="#">Flipkart</a></li>
+            <li><a href="#">Croma</a></li>
+            <li><a href="#">Reliance Digital</a></li>
+            <li><a href="#">Myntra</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-col-title">Categories</h4>
+          <ul class="footer-links">
+            <li><a href="#">Electronics</a></li>
+            <li><a href="#">Accessories</a></li>
+            <li><a href="#">Fashion</a></li>
+            <li><a href="#">Audio</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 PriceTracker. All rights reserved.</p>
+        <p class="footer-made">Built with ❤️ for smart shoppers.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
