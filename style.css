@@ -120,7 +120,7 @@ button {
 /* BUG #10 (CSS): Incorrect hover state — color doesn't change on hover, text stays invisible */
 .btn-outline:hover {
   background: var(--primary);
-  color: var(--primary);
+  color: #fff;
   transform: translateY(-1px);
 }
 
@@ -875,6 +875,7 @@ button {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+  overflow-x: auto;
 }
 
 .comparison-table {

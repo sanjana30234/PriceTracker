@@ -217,153 +217,160 @@ function getFilteredProducts() {
   // Apply search
   if (searchQuery.trim() !== '') {
     // BUG #4: Search is case-sensitive — missing .toLowerCase() on p.name
-    list = list.filter(p => p.name.indexOf(searchQuery.trim()) !== -1);
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      );
+
   }
 
   // Apply sort
-  if (currentSort === 'price-low') {
-    // BUG #5: Reversed sort — should be a.price - b.price for ascending
-    list.sort((a, b) => b.price - a.price);
-  } else if (currentSort === 'price-high') {
-    list.sort((a, b) => b.price - a.price);
-  } else if (currentSort === 'rating') {
-    list.sort((a, b) => b.rating - a.rating);
+
+    // Apply sort
+    if (currentSort === 'price-low') {
+      // BUG #5: Reversed sort — should be a.price - b.price for ascending
+      list.sort((a, b) => a.price - b.price);
+    } else if (currentSort === 'price-high') {
+      list.sort((a, b) => b.price - a.price);
+    } else if (currentSort === 'rating') {
+      list.sort((a, b) => b.rating - a.rating);
+    }
+
+    return list;
   }
 
-  return list;
-}
+  // ── Filter ──────────────────────────────────────────────
+  function filterProducts(category) {
+    currentFilter = category;
 
-// ── Filter ──────────────────────────────────────────────
-function filterProducts(category) {
-  currentFilter = category;
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById('filter-' + category);
+    if (activeBtn) activeBtn.classList.add('active');
 
-  // Update active filter button
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.remove('active');
+    renderProducts(getFilteredProducts());
+  }
+
+  // ── Sort ────────────────────────────────────────────────
+  function sortProducts(value) {
+    currentSort = value;
+    renderProducts(getFilteredProducts());
+  }
+
+  // ── Search ──────────────────────────────────────────────
+  function handleHeroSearch() {
+    const input = document.getElementById('hero-search-input').value;
+    searchQuery = input;
+    document.getElementById('nav-search-input').value = input;
+    renderProducts(getFilteredProducts());
+    document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function handleNavSearch() {
+    const input = document.getElementById('nav-search-input').value;
+    searchQuery = input;
+    document.getElementById('hero-search-input').value = input;
+    renderProducts(getFilteredProducts());
+    document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function clearSearch() {
+    searchQuery = '';
+    document.getElementById('hero-search-input').value = '';
+    document.getElementById('nav-search-input').value = '';
+    renderProducts(getFilteredProducts());
+  }
+
+  // Enter key triggers search
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('hero-search-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleHeroSearch();
+    });
+    document.getElementById('nav-search-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleNavSearch();
+    });
   });
-  const activeBtn = document.getElementById('filter-' + category);
-  if (activeBtn) activeBtn.classList.add('active');
 
-  renderProducts(getFilteredProducts());
-}
+  // ── Add to Compare Cart ─────────────────────────────────
+  function addToCompare(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-// ── Sort ────────────────────────────────────────────────
-function sortProducts(value) {
-  currentSort = value;
-  renderProducts(getFilteredProducts());
-}
+    // BUG #2: No duplicate check — same product can be added multiple times
+    // (the check below is intentionally missing its actual guard)
+    const alreadyAdded = compareCart.find(p => p.id === productId);
+    if (alreadyAdded) {
+      showToast('Product is already in your compare cart.', 'error');
+      return;
+    }
 
-// ── Search ──────────────────────────────────────────────
-function handleHeroSearch() {
-  const input = document.getElementById('hero-search-input').value;
-  searchQuery = input;
-  document.getElementById('nav-search-input').value = input;
-  renderProducts(getFilteredProducts());
-  document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-}
+    compareCart.push(product);
 
-function handleNavSearch() {
-  const input = document.getElementById('nav-search-input').value;
-  searchQuery = input;
-  document.getElementById('hero-search-input').value = input;
-  renderProducts(getFilteredProducts());
-  document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-}
+    // BUG #1: Cart count increments by 2 — adds 2 instead of 1
+    updateCartCount(compareCart.length);
 
-function clearSearch() {
-  searchQuery = '';
-  document.getElementById('hero-search-input').value = '';
-  document.getElementById('nav-search-input').value = '';
-  renderProducts(getFilteredProducts());
-}
+    const btn = document.getElementById('add-btn-' + productId);
+    if (btn) {
+      btn.textContent = '✓ Added';
+      btn.classList.add('added');
+      btn.disabled = true;
+    }
 
-// Enter key triggers search
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('hero-search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleHeroSearch();
-  });
-  document.getElementById('nav-search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleNavSearch();
-  });
-});
-
-// ── Add to Compare Cart ─────────────────────────────────
-function addToCompare(productId) {
-  const product = products.find(p => p.id === productId);
-  if (!product) return;
-
-  // BUG #2: No duplicate check — same product can be added multiple times
-  // (the check below is intentionally missing its actual guard)
-  const alreadyAdded = compareCart.find(p => p.id === productId);
-  if (alreadyAdded) {
-    showToast('Product is already in your compare cart.', 'error');
+    renderCartItems();
+    showToast(`${product.name} added to Compare Cart! 🛒`, 'success');
   }
 
-  compareCart.push(product);
-
-  // BUG #1: Cart count increments by 2 — adds 2 instead of 1
-  updateCartCount(compareCart.length + 1);
-
-  const btn = document.getElementById('add-btn-' + productId);
-  if (btn) {
-    btn.textContent = '✓ Added';
-    btn.classList.add('added');
-    btn.disabled = true;
+  // ── Update Cart Count ───────────────────────────────────
+  function updateCartCount(count) {
+    document.getElementById('cart-count').textContent = count;
+    document.getElementById('cart-badge').textContent = count + ' items';
   }
 
-  renderCartItems();
-  showToast(`${product.name} added to Compare Cart! 🛒`, 'success');
-}
+  // ── Remove from Cart ────────────────────────────────────
+  function removeFromCart(productId) {
+    const index = compareCart.findIndex(p => p.id === productId);
+    if (index === -1) return;
 
-// ── Update Cart Count ───────────────────────────────────
-function updateCartCount(count) {
-  document.getElementById('cart-count').textContent = count;
-  document.getElementById('cart-badge').textContent = count + ' items';
-}
+    compareCart.splice(index, 1);
+    renderCartItems();
 
-// ── Remove from Cart ────────────────────────────────────
-function removeFromCart(productId) {
-  const index = compareCart.findIndex(p => p.id === productId);
-  if (index === -1) return;
+    // BUG #3: Cart UI not re-rendered after removal — only count updates
+    updateCartCount(compareCart.length);
 
-  compareCart.splice(index, 1);
+    // Re-enable the add button on the product card
+    const btn = document.getElementById('add-btn-' + productId);
+    if (btn) {
+      btn.textContent = '+ Add to Compare';
+      btn.classList.remove('added');
+      btn.disabled = false;
+    }
 
-  // BUG #3: Cart UI not re-rendered after removal — only count updates
-  updateCartCount(compareCart.length);
-
-  // Re-enable the add button on the product card
-  const btn = document.getElementById('add-btn-' + productId);
-  if (btn) {
-    btn.textContent = '+ Add to Compare';
-    btn.classList.remove('added');
-    btn.disabled = false;
-  }
-
-  // Hide comparison table when items change
-  document.getElementById('comparison-area').style.display = 'none';
-
-  showToast('Product removed from cart.', '');
-}
-
-// ── Render Cart Items ───────────────────────────────────
-function renderCartItems() {
-  const grid = document.getElementById('cart-items-grid');
-  const emptyCart = document.getElementById('empty-cart');
-  const cartActions = document.getElementById('cart-actions');
-
-  if (compareCart.length === 0) {
-    emptyCart.style.display = 'block';
-    grid.style.display = 'none';
-    cartActions.style.display = 'none';
+    // Hide comparison table when items change
     document.getElementById('comparison-area').style.display = 'none';
-    return;
+
+    showToast('Product removed from cart.', '');
   }
 
-  emptyCart.style.display = 'none';
-  grid.style.display = 'grid';
-  cartActions.style.display = 'flex';
+  // ── Render Cart Items ───────────────────────────────────
+  function renderCartItems() {
+    const grid = document.getElementById('cart-items-grid');
+    const emptyCart = document.getElementById('empty-cart');
+    const cartActions = document.getElementById('cart-actions');
 
-  grid.innerHTML = compareCart.map(p => `
+    if (compareCart.length === 0) {
+      emptyCart.style.display = 'block';
+      grid.style.display = 'none';
+      cartActions.style.display = 'none';
+      document.getElementById('comparison-area').style.display = 'none';
+      return;
+    }
+
+    emptyCart.style.display = 'none';
+    grid.style.display = 'grid';
+    cartActions.style.display = 'flex';
+
+    grid.innerHTML = compareCart.map(p => `
     <div class="cart-item-card" id="cart-card-${p.id}">
       <img class="cart-item-img" src="${p.image}" alt="${p.name}"
            onerror="this.src='https://via.placeholder.com/80x80?text=Img'" />
@@ -376,52 +383,56 @@ function renderCartItems() {
       </button>
     </div>
   `).join('');
-}
-
-// ── Clear Cart ──────────────────────────────────────────
-function clearCart() {
-  // Re-enable all add buttons
-  compareCart.forEach(p => {
-    const btn = document.getElementById('add-btn-' + p.id);
-    if (btn) {
-      btn.textContent = '+ Add to Compare';
-      btn.classList.remove('added');
-      btn.disabled = false;
-    }
-  });
-  compareCart = [];
-  updateCartCount(0);
-  renderCartItems();
-  document.getElementById('comparison-area').style.display = 'none';
-  showToast('Compare cart cleared.', '');
-}
-// BUG #8: clearCart is defined but the event listener is never wired to #clear-cart-btn
-// (Students need to add: document.getElementById('clear-cart-btn').addEventListener('click', clearCart))
-
-// ── Render Comparison Table ─────────────────────────────
-function renderComparisonTable() {
-  // BUG #9: No guard clause — table renders even with 0 items
-  const tbody = document.getElementById('comparison-tbody');
-  const savingsBanner = document.getElementById('savings-banner');
-
-  const prices = compareCart.map(p => p.price);
-
-  // BUG #6: Lowest price logic is inverted — uses > instead of <
-  let lowestPrice = prices[0];
-  let highestPrice = prices[0];
-
-  for (let i = 1; i < prices.length; i++) {
-    if (prices[i] > lowestPrice) {
-      lowestPrice = prices[i];
-    }
-    if (prices[i] > highestPrice) {
-      highestPrice = prices[i];
-    }
   }
 
-  tbody.innerHTML = compareCart.map(p => {
-    const isBest = p.price === lowestPrice;
-    return `
+  // ── Clear Cart ──────────────────────────────────────────
+  function clearCart() {
+    // Re-enable all add buttons
+    compareCart.forEach(p => {
+      const btn = document.getElementById('add-btn-' + p.id);
+      if (btn) {
+        btn.textContent = '+ Add to Compare';
+        btn.classList.remove('added');
+        btn.disabled = false;
+      }
+    });
+    compareCart = [];
+    updateCartCount(0);
+    renderCartItems();
+    document.getElementById('comparison-area').style.display = 'none';
+    showToast('Compare cart cleared.', '');
+  }
+  // BUG #8: clearCart is defined but the event listener is never wired to #clear-cart-btn
+  // (Students need to add: document.getElementById('clear-cart-btn').addEventListener('click', clearCart))
+
+  // ── Render Comparison Table ─────────────────────────────
+  function renderComparisonTable() {
+    if (compareCart.length === 0) {
+      document.getElementById('comparison-area').style.display = 'none';
+      return;
+    }
+    // BUG #9: No guard clause — table renders even with 0 items
+    const tbody = document.getElementById('comparison-tbody');
+    const savingsBanner = document.getElementById('savings-banner');
+
+    const prices = compareCart.map(p => p.price);
+
+    // BUG #6: Lowest price logic is inverted — uses > instead of <
+    let lowestPrice = prices[0];
+    let highestPrice = prices[0];
+
+    for (let i = 1; i < prices.length; i++) {
+      if (prices[i] < lowestPrice) {
+        lowestPrice = prices[i];
+      }
+      if (prices[i] > highestPrice) {
+        highestPrice = prices[i];
+      }
+    }
+
+    tbody.innerHTML = compareCart.map(p => {
+      const isBest = p.price === lowestPrice;
+      return `
       <tr class="${isBest ? 'best-price-row' : ''}">
         <td>
           <strong>${p.name}</strong>
@@ -434,14 +445,15 @@ function renderComparisonTable() {
         <td>${renderStars(p.rating)} ${p.rating}</td>
       </tr>
     `;
-  }).join('');
+    }).join('');
 
-  // BUG #7: Savings calculated from originalPrice difference, not from actual price difference
-  const savings = compareCart.reduce((max, p) => Math.max(max, p.originalPrice), 0)
-                - compareCart.reduce((min, p) => Math.min(min, p.originalPrice), 0);
+    // BUG #7: Savings calculated from originalPrice difference, not from actual price difference
+    const maxPrice = Math.max(...prices);
+    const minPrice = Math.min(...prices);
 
-  if (savings > 0) {
-    savingsBanner.innerHTML = `
+    const savings = maxPrice - minPrice;
+    if (savings > 0) {
+      savingsBanner.innerHTML = `
       <span class="savings-icon">💰</span>
       <div class="savings-text">
         <strong>You save ${formatPrice(savings)} by choosing the best deal!</strong>
@@ -449,48 +461,51 @@ function renderComparisonTable() {
       </div>
       <a href="#" class="btn btn-primary btn-sm" onclick="alert('Visit the store directly to purchase this product.')">View Deal</a>
     `;
-    savingsBanner.style.display = 'flex';
-  } else {
-    savingsBanner.style.display = 'none';
+      savingsBanner.style.display = 'flex';
+    } else {
+      savingsBanner.style.display = 'none';
+    }
+
+    document.getElementById('comparison-area').style.display = 'block';
+    document.getElementById('comparison-area').scrollIntoView({ behavior: 'smooth' });
   }
 
-  document.getElementById('comparison-area').style.display = 'block';
-  document.getElementById('comparison-area').scrollIntoView({ behavior: 'smooth' });
-}
+  // ── Scroll Helpers ──────────────────────────────────────
+  function scrollToCompare() {
+    document.getElementById('compare-section').scrollIntoView({ behavior: 'smooth' });
+  }
 
-// ── Scroll Helpers ──────────────────────────────────────
-function scrollToCompare() {
-  document.getElementById('compare-section').scrollIntoView({ behavior: 'smooth' });
-}
+  // ── Mobile Menu ─────────────────────────────────────────
+  function toggleMenu() {
+    const links = document.getElementById('nav-links');
+    links.classList.toggle('open');
+  }
 
-// ── Mobile Menu ─────────────────────────────────────────
-function toggleMenu() {
-  const links = document.getElementById('nav-links');
-  links.classList.toggle('open');
-}
+  // ── Navbar active link on scroll ────────────────────────
+  window.addEventListener('scroll', () => {
+    const sections = ['hero', 'products', 'compare-section', 'about'];
+    const navLinks = document.querySelectorAll('.nav-link');
+    let current = '';
 
-// ── Navbar active link on scroll ────────────────────────
-window.addEventListener('scroll', () => {
-  const sections = ['hero', 'products', 'compare-section', 'about'];
-  const navLinks = document.querySelectorAll('.nav-link');
-  let current = '';
+    sections.forEach(id => {
+      const section = document.getElementById(id);
+      if (section && window.scrollY >= section.offsetTop - 100) {
+        current = id;
+      }
+    });
 
-  sections.forEach(id => {
-    const section = document.getElementById(id);
-    if (section && window.scrollY >= section.offsetTop - 100) {
-      current = id;
-    }
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      const href = link.getAttribute('href').replace('#', '');
+      if (href === current) link.classList.add('active');
+    });
   });
 
-  navLinks.forEach(link => {
-    link.classList.remove('active');
-    const href = link.getAttribute('href').replace('#', '');
-    if (href === current) link.classList.add('active');
-  });
-});
+  // ── Init ────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    renderProducts(getFilteredProducts());
+    renderCartItems();
 
-// ── Init ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  renderProducts(getFilteredProducts());
-  renderCartItems();
-});
+    document.getElementById('clear-cart-btn')
+      .addEventListener('click', clearCart);
+  });
